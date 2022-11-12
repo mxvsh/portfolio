@@ -1,3 +1,3 @@
 # Personal Portfolio
 
-> ⚠️ This website is currently under development.
+> ⚠️ This project is currently under development.
