@@ -28,6 +28,7 @@ const About = () => {
 				</Box>
 				<Spacer />
 				<Image
+					cursor='pointer'
 					top={-130}
 					position='relative'
 					src={PROFILE_PIC_URL}
@@ -35,6 +36,12 @@ const About = () => {
 					rounded='60px'
 					boxSize='250px'
 					border='10px solid white'
+					transition='all 0.2s ease-in-out'
+					_hover={{
+						transform: 'scale(1.05)',
+						shadow: '2xl',
+						borderWidth: '0px',
+					}}
 				/>
 			</HStack>
 		</Box>
