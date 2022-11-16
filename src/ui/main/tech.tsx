@@ -7,6 +7,7 @@ import {
 	SiMongodb,
 	SiNextdotjs,
 	SiSketch,
+	SiFirebase,
 } from 'react-icons/si';
 import { IoPrism } from 'react-icons/io5';
 
@@ -16,18 +17,22 @@ type TechItemProps = {
 	clr: string;
 	tags?: string[];
 };
-const TechItem: React.FC<TechItemProps> = ({ icon, clr }) => {
+const TechItem: React.FC<TechItemProps> = ({ title, icon, clr }) => {
 	return (
 		<Box
 			cursor='pointer'
 			_active={{ transform: 'scale(0.95)' }}
 			transition='all 0.2s ease-in-out'
 			userSelect='none'
+			p={12}
 		>
 			<Center>
 				<Box rounded='xl' fontSize='7xl' color={`${clr}.500`}>
 					{icon}
 				</Box>
+			</Center>
+			<Center mt={2}>
+				<Heading size='md'>{title}</Heading>
 			</Center>
 		</Box>
 	);
@@ -41,7 +46,7 @@ const Tech = () => {
 					Technologies, I have worked on...
 				</Heading>
 
-				<SimpleGrid mt={12} columns={{ base: 2, lg: 10 }} spacing={4}>
+				<SimpleGrid mt={12} columns={{ base: 2, lg: 4 }} spacing={4}>
 					<TechItem clr='blue' title='React' icon={<SiReact />} />
 					<TechItem clr='blue' title='TypeScript' icon={<SiTypescript />} />
 					<TechItem clr='green' title='Node.js' icon={<SiNodedotjs />} />
@@ -49,6 +54,7 @@ const Tech = () => {
 					<TechItem clr='green' title='MongoDB' icon={<SiMongodb />} />
 					<TechItem clr='black' title='Next.js' icon={<SiNextdotjs />} />
 					<TechItem clr='yellow' title='Sketch' icon={<SiSketch />} />
+					<TechItem clr='yellow' title='Firebase' icon={<SiFirebase />} />
 				</SimpleGrid>
 			</Box>
 		</Box>
