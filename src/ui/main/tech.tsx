@@ -85,7 +85,7 @@ const Tech = () => {
 		<Box>
 			<Box maxW='7xl' m='auto' rounded='50px'>
 				<Heading mt={2} size='2xl'>
-					Technologies, I have worked with...
+					Technologies, I have worked on...
 				</Heading>
 
 				<SimpleGrid mt={12} columns={{ base: 2, lg: 10 }} spacing={4}>
