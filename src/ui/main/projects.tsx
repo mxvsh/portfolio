@@ -73,7 +73,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
 const Projects = () => {
 	return (
-		<Box py={24} bg='gray.100'>
+		<Box px={{ base: 4, lg: 0 }} py={{ base: 12, lg: 24 }} bg='gray.100'>
 			<Box maxW='7xl' m='auto' rounded='50px'>
 				<Heading mt={2} size='2xl' color='gray.500'>
 					My projects

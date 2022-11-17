@@ -40,8 +40,8 @@ const TechItem: React.FC<TechItemProps> = ({ title, icon, clr }) => {
 
 const Tech = () => {
 	return (
-		<Box>
-			<Box maxW='7xl' m='auto' rounded='50px'>
+		<Box px={{ base: 4, lg: 0 }}>
+			<Box maxW='7xl' m='auto'>
 				<Heading mt={2} size='2xl'>
 					Technologies, I have worked on...
 				</Heading>

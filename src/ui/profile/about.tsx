@@ -4,16 +4,44 @@ import { PROFILE_PIC_URL } from '@/config/profile';
 
 const About = () => {
 	return (
-		<Box py={6} position='relative'>
+		<Box px={{ base: 4, lg: 0 }} py={6} position='relative'>
 			<HStack
-				p={12}
+				p={{
+					base: 6,
+					lg: 12,
+				}}
 				m='auto'
 				maxW='7xl'
 				bg='green.500'
 				color='white'
 				rounded='50px'
 				shadow='md'
+				flexDirection={{
+					base: 'column',
+					lg: 'row',
+				}}
 			>
+				<Image
+					display={{
+						base: 'block',
+						lg: 'none',
+					}}
+					top={-10}
+					right={4}
+					cursor='pointer'
+					position='absolute'
+					src={PROFILE_PIC_URL}
+					alt='profile'
+					rounded='40px'
+					boxSize='120px'
+					border='10px solid white'
+					transition='all 0.2s ease-in-out'
+					_hover={{
+						transform: 'scale(1.05)',
+						shadow: '2xl',
+						borderWidth: '0px',
+					}}
+				/>
 				<Box>
 					<Heading mt={2} size='2xl'>
 						About me
@@ -28,6 +56,10 @@ const About = () => {
 				</Box>
 				<Spacer />
 				<Image
+					display={{
+						base: 'none',
+						lg: 'block',
+					}}
 					cursor='pointer'
 					top={-130}
 					position='relative'

@@ -6,7 +6,7 @@ type Props = {
 };
 const MainLayout: React.FC<Props> = ({ children }) => {
 	return (
-		<Stack spacing={12} pb={12} px={{ base: 4, lg: 0 }} overflow='hidden'>
+		<Stack spacing={12} pb={12} overflow='hidden'>
 			{children}
 		</Stack>
 	);
