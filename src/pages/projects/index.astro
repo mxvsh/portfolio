@@ -1,0 +1,112 @@
+---
+import { cn } from '~/lib/utils'
+import { PROJECTS_CONFIG } from '~/config'
+import Layout from '~/layouts/Layout.astro'
+import SectionDivider from '~/components/base/SectionDivider.astro'
+import NumberTicker from '~/components/base/NumberTicker'
+import { Image } from 'astro:assets'
+import { getAllProjects } from '~/lib/data'
+import PageTitle from '~/components/base/PageTitle.astro'
+
+const { title, description, introduce } = PROJECTS_CONFIG
+const projects = await getAllProjects()
+---
+
+<Layout {title} {description}>
+  <div class="relative z-[1] py-8 pb-10">
+    <div class="px-6 sm:px-8">
+      <PageTitle {title} {introduce} />
+    </div>
+    <div class="grid grid-cols-1 fade-up">
+      {
+        projects.map((project, index) => {
+          let githubRepo = undefined
+          if (project.data.githubUrl) {
+            try {
+              const urlObj = new URL(project.data.githubUrl)
+              if (urlObj.hostname.includes('github.com')) {
+                githubRepo = urlObj.pathname.replace(/^\/|\/$/g, '')
+              }
+            } catch (e) {}
+          }
+
+          return (
+            <div>
+              <div class="group relative hover:bg-muted/30 dark:hover:bg-muted/30 transition-colors duration-300 px-6 sm:px-8 py-4 ">
+                <div class="absolute right-8 top-4 hidden sm:block">
+                  {project.data.type == 'icon' && <span class={cn('size-10', project.data.icon)} />}
+                  {project.data.type == 'image' && project.data?.icon && (
+                    <Image
+                      src={project.data?.icon}
+                      alt="icon"
+                      width={40}
+                      height={40}
+                      class={cn(project.data.imageClass)}
+                      densities={[1, 2]}
+                      loading="lazy"
+                    />
+                  )}
+                </div>
+                <a
+                  href={project.data.website}
+                  target="_blank"
+                  class="inline-flex items-center justify-between font-semibold text-lg/relaxed "
+                >
+                  {project.data.name}
+                </a>
+                <p class="pr-0 sm:pr-14 text-muted-foreground mb-3">{project.data.description}</p>
+                <div class="flex flex-col sm:flex-row gap-4 sm:gap-0 items-start sm:items-center justify-between sm:h-14">
+                  <div class="flex gap-4 ">
+                    <div class="flex items-center py-1.5 gap-3">
+                      {project.data.star != null && (
+                        <>
+                          <span class="text-xs uppercase tracking-wide font-medium text-muted-foreground">Stars</span>
+                          <span class="font-semibold text-lg tracking-wider">
+                            <NumberTicker play value={project.data.star} client:load githubRepo={githubRepo} githubType="stars" />
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div class="flex items-center py-1.5 gap-3">
+                      {project.data.fork != null && (
+                        <>
+                          <span class="text-xs uppercase tracking-wide font-medium text-muted-foreground">Forks</span>
+                          <span class="font-semibold text-lg tracking-wider">
+                            <NumberTicker play value={project.data.fork} client:load githubRepo={githubRepo} githubType="forks" />
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-5 text-zinc-500 text-sm z-10 ">
+                    {project.data.website && (
+                      <a
+                        href={project.data.website}
+                        target="_blank"
+                        class="hover:text-zinc-600 dark:hover:text-zinc-100 flex items-center gap-1"
+                      >
+                        <span class="icon-[mdi--web] size-4" />
+                        <span>Website</span>
+                      </a>
+                    )}
+                    {project.data.githubUrl && (
+                      <a
+                        href={project.data.githubUrl}
+                        target="_blank"
+                        class="hover:text-zinc-600 dark:hover:text-zinc-100 flex items-center gap-1"
+                      >
+                        <span class="icon-[mdi--github] size-4" />
+                        <span>GitHub</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <SectionDivider className={index == projects.length - 1 ? 'hidden' : ''} />
+            </div>
+          )
+        })
+      }
+    </div>
+  </div>
+</Layout>

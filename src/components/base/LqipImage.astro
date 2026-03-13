@@ -1,0 +1,34 @@
+---
+import { Image } from 'astro:assets'
+import { generateLQIPFromPath } from 'plugins/remark-lqip'
+interface Props {
+  src: any
+  alt: string
+  zoom?: boolean
+  [key: string]: any
+}
+const { src, alt, zoom = false, style, ...rest } = Astro.props
+
+let lqip: string | null = null
+
+lqip = await generateLQIPFromPath(src)
+
+// 构建样式
+const lqipStyle = lqip ? `--lqip:${lqip}` : ''
+const finalStyle = style ? `${style};${lqipStyle}` : lqipStyle
+---
+
+<Image {src} {alt} data-zoom style={finalStyle || undefined} {...rest} />
+
+<!-- <script>
+  import mediumZoom from 'medium-zoom/dist/pure'
+
+  const zoom = mediumZoom({
+    background: 'rgb(0 0 0 / 0.8)',
+  })
+
+  document.addEventListener('astro:page-load', () => {
+    zoom.detach()
+    zoom.attach('[data-zoom]')
+  })
+</script> -->

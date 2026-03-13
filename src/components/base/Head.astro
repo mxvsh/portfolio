@@ -1,0 +1,102 @@
+---
+import { ClientRouter } from 'astro:transitions'
+import { ANALYTICS_CONFIG, SITE } from '~/config'
+
+type Props = {
+  title: string
+  description: string
+  image?: string
+}
+
+const { title, description, image }: Props = Astro.props
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site)
+const ogImage = new URL(image || SITE.ogImage, Astro.url)
+---
+
+<script is:inline src="/js/theme.js"></script>
+
+<!-- 页面内SEO  On-Page SEO -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+<meta name="google" content="notranslate" />
+
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+<meta name="author" content={SITE.author} />
+
+<!-- color -->
+<meta name="theme-color" content="" />
+<meta name="color-scheme" content="light dark" />
+
+<!-- icon -->
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+{/* RSS Feed Link */}
+<link rel="alternate" type="application/rss+xml" title={SITE.title} href={new URL('/rss.xml', Astro.site).href} />
+
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+
+<!-- 预加载 -->
+<!-- 中文字体启用 -->
+<!-- <link rel="stylesheet" href="/fonts/ShangguSansSC-VF/result.css" /> -->
+<link rel="preload" href="/fonts/GeistVF.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" href="/fonts/Lexend-VariableFont_wght.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" href="/fonts/GeistMono.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
+<!-- 标准链接  Canonical URL -->
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Sitemap -->
+<link rel="sitemap" href="/sitemap-index.xml" />
+
+<!-- Open Graph & Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content={Astro.url} />
+<meta property="og:title" content={title} />
+<meta property="og:site_name" content={SITE.title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={Astro.url} />
+<meta property="twitter:title" content={title} />
+<meta property="twitter:description" content={description} />
+<meta property="twitter:image" content={ogImage} />
+
+
+{
+  ANALYTICS_CONFIG.umami?.enabled && (
+    <script
+      is:inline
+      defer
+      src={ANALYTICS_CONFIG.umami.serverUrl}
+      data-website-id={ANALYTICS_CONFIG.umami.websiteId}
+    ></script>
+  )
+}
+{
+  ANALYTICS_CONFIG.vercount?.enabled && (
+    <script is:inline defer src="https://events.vercount.one/js" data-astro-rerun></script>
+  )
+}
+{
+  ANALYTICS_CONFIG.google?.enabled && (
+    <>
+      <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_CONFIG.google.id}`}></script>
+      <script is:inline define:vars={{ id: ANALYTICS_CONFIG.google.id }}>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', id);
+      </script>
+    </>
+  )
+}
+
+<ClientRouter fallback="swap" />

@@ -1,0 +1,818 @@
+@import 'medium-zoom/dist/style.css';
+@import 'rehype-callouts/theme/vitepress';
+@import url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css');
+
+/* ===== CSS自定义属性 (现代化设计) ===== */
+:root {
+  /* 颜色系统 - 使用 light-dark() 函数 */
+  --color-text-primary: light-dark(#0a0a0a, #d5d5d6);
+  --color-text-secondary: light-dark(#52525b, #a1a1aa);
+  --color-text-muted: light-dark(#6b7280, #9ca3af);
+  --color-heading: light-dark(#0a0a0a, #d5d5d6);
+  --color-link: light-dark(#0a0a0a, #e5e7eb);
+  --color-link-hover: light-dark(#1f2937, #f3f4f6);
+  --color-anchor: light-dark(#6366f1, #818cf8);
+
+  /* 背景颜色 */
+  --color-bg-inline-code: light-dark(#f1f3f5, #1e1e20);
+  --color-text-inline-code: light-dark(#3b4252, #c9d1d9);
+  --color-bg-polaroid: #ffffff;
+
+  /* 边框颜色 */
+  --color-border-light: light-dark(#e9edf2, #2b2b30);
+  --color-border-medium: light-dark(#555, #555);
+  --color-border-blockquote: light-dark(#e6ebf2, #3a3a40);
+
+  /* 阴影 */
+  --shadow-polaroid: 0 5px 15px rgb(0 0 0 / 0.15);
+  --shadow-polaroid-hover: 0 8px 20px rgb(0 0 0 / 0.2);
+  --shadow-polaroid-dark: 0 5px 15px rgb(0 0 0 / 0.3);
+
+  /* 字体 */
+  --font-family-handwritten: 'Comic Sans MS', cursive;
+
+  /* 间距系统 */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 2.5rem;
+  --space-3xl: 3rem;
+
+  /* 圆角 */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+
+  /* 动画 */
+  --transition-fast: 0.3s ease;
+  --transition-medium: 0.3s ease-in-out;
+}
+
+/* ===== 基础样式重置 ===== */
+.markdown {
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  line-height: 1.75;
+
+  /* 现代文本换行 */
+  & :is(p, li, blockquote) {
+    text-wrap: wrap;
+  }
+
+  /* 移除默认边距 */
+  & > :first-child {
+    margin-block-start: 0;
+  }
+  & > :last-child {
+    margin-block-end: 0;
+  }
+}
+
+/* ===== 标题样式 (使用逻辑属性) ===== */
+.markdown {
+  & :is(h1, h2, h3, h4, h5, h6) {
+    color: var(--color-heading);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    scroll-margin-top: 6rem;
+
+    /* 统一的标题锚点样式 */
+    &:is(:hover, :focus) .header-anchor {
+      opacity: 0.6;
+    }
+  }
+
+  & h1 {
+    font-size: clamp(1.75em, 4vw, 2em);
+    margin-block: 0 1em;
+    line-height: 1.1111111;
+  }
+
+  & h2 {
+    font-size: clamp(1.375em, 3vw, 1.5em);
+    margin-block: 1.5em 0.75em;
+    line-height: 1.3333333;
+  }
+
+  & h3 {
+    font-size: clamp(1.175em, 2.5vw, 1.25em);
+    margin-block: 1.25em 0.5em;
+    line-height: 1.6;
+  }
+
+  & :is(h4, h5, h6) {
+    font-size: clamp(1em, 2vw, 1.125em);
+    margin-block: 1em 0.375em;
+    line-height: 1.4;
+  }
+
+  /* 连续标题间距优化 */
+  & :is(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6) {
+    margin-block-start: 0.75em;
+  }
+
+  /* 层级递进标题（更紧密） */
+  & h1 + h2,
+  & h2 + h3,
+  & h3 + h4,
+  & h4 + h5,
+  & h5 + h6 {
+    margin-block-start: 0.5em;
+  }
+
+  /* 同级标题（稍宽松） */
+  & h2 + h2,
+  & h3 + h3,
+  & h4 + h4 {
+    margin-block-start: 1em;
+  }
+}
+
+/* ===== 文本内容样式 ===== */
+.markdown {
+  & p {
+    margin-block: 1.25em;
+    font-size: 1em;
+  }
+
+  & :is(strong, b) {
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  & :is(em, i) {
+    color: inherit;
+    font-size: 1.05em;
+  }
+
+  /* 链接样式 */
+  & a:not(.card-github) {
+    color: var(--color-link);
+    text-decoration: none;
+    border-block-end: 1px solid var(--color-border-light);
+    transition: border-color var(--transition-medium);
+
+    &:hover {
+      border-block-end-color: var(--color-border-medium);
+    }
+
+    /* 代码链接 */
+    & code {
+      color: inherit;
+    }
+  }
+}
+
+/* ===== 列表样式 (现代化伪元素) ===== */
+.markdown {
+  & :is(ol, ul) {
+    margin-block: 1.25em;
+    list-style: none;
+  }
+
+  & li {
+    margin-block: 0.5em;
+    position: relative;
+    padding-inline-start: 1.25em;
+  }
+
+  /* 有序列表 */
+  & ol > li::before {
+    content: counter(list-item) '.';
+    position: absolute;
+    inset-inline-start: 0;
+    font-weight: 400;
+  }
+
+  /* 无序列表 */
+  & ul > li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0.2em;
+    inset-block-start: calc(0.875em - 0.2em);
+    inline-size: 0.4em;
+    block-size: 0.4em;
+    background-color: var(--color-text-secondary);
+    border-radius: 50%;
+    opacity: 0.8;
+  }
+
+  /* 嵌套列表 */
+  & :is(ul, ol) :is(ul, ol) {
+    margin-block: 0.75em;
+  }
+}
+
+/* ===== 任务列表 ===== */
+.markdown {
+  & ul.contains-task-list {
+    padding-inline-start: 0;
+
+    & > li::before {
+      display: none;
+    }
+  }
+
+  & li.task-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding-inline-start: 0;
+
+    & input[type='checkbox'] {
+      margin-block-start: 0.3em;
+      inline-size: 1em;
+      block-size: 1em;
+      border: 1px solid var(--color-text-secondary);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+
+      &:checked {
+        background-color: var(--color-anchor);
+        border-color: var(--color-anchor);
+      }
+    }
+  }
+}
+
+/* ===== 引用块样式 ===== */
+.markdown {
+  & blockquote {
+    font-weight: 500;
+    font-style: italic;
+    color: inherit;
+    border-inline-start: 0.25rem solid var(--color-border-blockquote);
+    margin-block: 1.6em;
+    padding-inline-start: 1em;
+    quotes: '\201C' '\201D' '\2018' '\2019';
+
+    & > * {
+      opacity: 0.7;
+
+      &:first-child {
+        margin-block-start: 0;
+      }
+      &:last-child {
+        margin-block-end: 0;
+      }
+    }
+
+    & p:first-of-type::before {
+      content: open-quote;
+    }
+    & p:last-of-type::after {
+      content: close-quote;
+    }
+  }
+}
+
+/* ===== 代码样式 ===== */
+.markdown {
+  /* 行内代码 */
+  & :where(code):not(:where(pre *, a *)) {
+    background-color: var(--color-bg-inline-code);
+    color: var(--color-text-inline-code);
+    padding-block: 0.1rem;
+    padding-inline: 0.3rem;
+    font-family: var(--font-geist-mono);
+    font-size: 0.875em;
+    word-wrap: break-word;
+    font-weight: 500;
+  }
+
+  /* 代码块 */
+  & pre {
+    overflow-x: auto;
+    font-size: 0.9375em;
+    line-height: 1.7142857;
+    margin-block: 1.7142857em;
+    border-radius: var(--radius-md);
+    padding: 0.8571429em 1.1428571em;
+
+    & code {
+      background-color: transparent;
+      border: none !important;
+      padding: 0;
+      font-weight: 400;
+      color: inherit;
+      font-size: inherit;
+      font-family: inherit;
+      line-height: inherit;
+
+      &::before,
+      &::after {
+        content: none;
+      }
+    }
+  }
+}
+
+/* ===== 图片和媒体样式 ===== */
+.markdown {
+  & img {
+    margin-block: var(--space-xl);
+    margin-inline: auto;
+    will-change: transform, filter;
+    transition: filter var(--transition-fast);
+
+    /* Medium Zoom 图片过渡 */
+    &.medium-zoom-image {
+      transition:
+        filter var(--transition-fast),
+        transform var(--transition-fast) !important;
+    }
+
+    /* 暗色主题滤镜（基础为明亮模式，暗色在下方 .dark 覆盖） */
+    &:not(.noDarken) {
+      filter: none;
+    }
+
+    /* hover时临时移除滤镜 */
+    &:hover:not(.medium-zoom-image--opened):not(.noDarken) {
+      filter: none !important;
+    }
+  }
+
+  & video {
+    margin-block: var(--space-xl);
+  }
+
+  & figure {
+    margin-block: var(--space-xl);
+
+    & > * {
+      margin-block: 0;
+    }
+
+    & img {
+      margin-block: 0;
+    }
+
+    & figcaption {
+      color: var(--color-text-muted);
+      font-size: 0.875em;
+      line-height: 1.4285714;
+      margin-block-start: 0.8571429em;
+      text-align: center;
+    }
+  }
+}
+
+.dark .markdown img:not(.noDarken) {
+  filter: brightness(0.75) contrast(1.1);
+}
+
+/* ===== 表格样式 ===== */
+.markdown {
+  & table {
+    width: 100%;
+    table-layout: auto;
+    text-align: left;
+    font-size: 0.9375em;
+    line-height: 1.7142857;
+    border-collapse: collapse;
+  }
+
+  & thead {
+    color: var(--color-text-primary);
+    font-weight: 600;
+    border-block-end: 1px solid var(--color-border-light);
+
+    & th {
+      vertical-align: bottom;
+      padding: 0.5714286em;
+      white-space: nowrap;
+
+      &:first-child {
+        padding-inline-start: 0;
+      }
+      &:last-child {
+        padding-inline-end: 0;
+      }
+    }
+  }
+
+  & tbody {
+    & tr {
+      border-block-end: 1px solid var(--color-border-light);
+
+      &:last-child {
+        border-block-end: none;
+      }
+    }
+
+    & td {
+      vertical-align: top;
+      padding: 0.5714286em;
+
+      &:first-child {
+        padding-inline-start: 0;
+        white-space: nowrap;
+      }
+
+      &:last-child {
+        padding-inline-end: 0;
+      }
+    }
+  }
+}
+
+/* ===== 拍立得风格图片 (自定义元素) ===== */
+image-div-polaroid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-block: var(--space-xl);
+}
+
+image-figure-polaroid {
+  display: inline-block;
+  background: var(--color-bg-polaroid);
+  padding: var(--space-md);
+  padding-block-end: var(--space-xl);
+  box-shadow: var(--shadow-polaroid);
+  transform: rotate(-1deg);
+  transition: all var(--transition-fast);
+  inline-size: min(55%, 300px);
+  min-inline-size: 300px;
+
+  &:hover {
+    transform: rotate(0deg) scale(1.02);
+    box-shadow: var(--shadow-polaroid-hover);
+  }
+
+  & img {
+    border-radius: 3px;
+    filter: contrast(1.1) saturate(1.1) !important;
+  }
+
+  & p {
+    margin-block-start: var(--space-md);
+    font-family: var(--font-family-handwritten);
+    font-size: 1rem;
+    color: #666;
+    text-align: center;
+  }
+}
+
+.dark image-figure-polaroid {
+  box-shadow: var(--shadow-polaroid-dark);
+}
+
+/* ===== 分割线样式 ===== */
+.markdown hr {
+  border: none;
+  border-block-start: 1px solid var(--color-border-light);
+  margin-block: var(--space-xl) auto;
+}
+
+/* ===== 锚点链接样式 ===== */
+.markdown a.header-anchor {
+  float: inline-start;
+  margin-inline-start: -1.5em;
+  border: none !important;
+  opacity: 0;
+  font-size: 0.7em;
+  text-decoration: none;
+  color: var(--color-anchor);
+  transition: opacity var(--transition-fast);
+
+  &:is(:hover, :focus) {
+    text-decoration: none;
+    color: var(--color-anchor);
+    opacity: 1;
+  }
+}
+
+/* ===== 脚注样式 ===== */
+.markdown .footnotes {
+  margin-block-start: var(--space-3xl);
+  font-size: 0.875em;
+  color: var(--color-text-secondary);
+  opacity: 0.9;
+
+  &::before {
+    content: '';
+    display: block;
+    inline-size: 100%;
+    margin-block-end: 1.5em;
+    border-block-start: 1px solid var(--color-border-light);
+  }
+
+  & li {
+    margin-block: 0.5em;
+
+    & p {
+      margin: 0;
+    }
+  }
+
+  & .data-footnote-backref {
+    text-decoration: none;
+    opacity: 0.7;
+    cursor: pointer;
+    border: none;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+/* ===== 详情/摘要样式 ===== */
+.markdown {
+  & details {
+    margin-block: 1.25em;
+
+    &:not(.expressive-code *) {
+      margin-block: 1.25em;
+    }
+
+    & summary {
+      padding-inline-start: 1px;
+      cursor: pointer;
+    }
+  }
+
+  & li details {
+    margin-block: 0.5em;
+  }
+}
+
+/* ===== 特殊组件样式 ===== */
+/* Medium Zoom */
+.medium-zoom-overlay,
+.medium-zoom-image--opened {
+  z-index: 300;
+}
+
+/* Callouts */
+.callout {
+  padding-inline-start: 16px;
+  font-size: 15px;
+  border-radius: 0;
+
+  & p {
+    margin-block: var(--space-md);
+  }
+}
+
+/* per-type accent */
+.markdown .callout[data-callout='note'] {
+  --accent: #64748b;
+}
+.markdown .callout[data-callout='tip'] {
+  --accent: #3b82f6;
+}
+.markdown .callout[data-callout='important'] {
+  --accent: #8b5cf6;
+}
+.markdown .callout[data-callout='warning'] {
+  --accent: #f59e0b;
+}
+.markdown .callout[data-callout='caution'] {
+  --accent: #ef4444;
+}
+
+.markdown .callout :where(code):not(:where(pre *, a *)) {
+  background: color-mix(in srgb, var(--accent, #6b7280) 12%, transparent);
+  color: inherit;
+  padding-block: 0.1rem;
+  padding-inline: 0.3rem;
+}
+.dark .markdown .callout :where(code):not(:where(pre *, a *)) {
+  background: color-mix(in srgb, var(--accent, #9ca3af) 14%, transparent);
+}
+
+.callout-title-icon {
+  padding-inline-end: 2px;
+}
+
+/* ExpressiveCode */
+.expressive-code {
+  margin-block: 1em;
+
+  & .copy button {
+    inline-size: 2rem !important;
+    block-size: 2rem !important;
+
+    &::before {
+      display: none;
+    }
+
+    &::after {
+      inline-size: 1rem !important;
+      block-size: 1rem !important;
+      opacity: 0.5 !important;
+    }
+
+    &:is(:hover, :active)::after {
+      opacity: 1 !important;
+    }
+  }
+
+  & .copy .feedback {
+    font-size: 14px;
+    border-width: 0;
+  }
+
+  & .ec-section summary {
+    & .code {
+      display: flex;
+      align-items: center;
+    }
+
+    & svg {
+      display: inline-block;
+    }
+  }
+
+  & .gutter .ln {
+    padding-inline: 1ch !important;
+  }
+}
+
+/* ===== 响应式设计 ===== */
+@media (width <= 768px) {
+  image-figure-polaroid {
+    margin-inline: 10%;
+  }
+
+  .markdown {
+    font-size: 0.9375rem;
+
+    & a.header-anchor {
+      font-size: 0.75em;
+    }
+
+    & table {
+      display: block;
+      inline-size: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      font-size: 0.875em;
+
+      & :is(th, td) {
+        min-inline-size: 8em;
+        padding: 0.5em;
+      }
+
+      & td {
+        word-break: break-word;
+      }
+    }
+
+    & pre {
+      margin-block: 1.5em;
+      padding: 1em;
+      font-size: 0.875em;
+    }
+
+    & blockquote {
+      margin-block: 1.25em;
+      padding-inline-start: 0.875em;
+    }
+
+    & :is(img, video) {
+      margin-block: 1.5em;
+    }
+  }
+}
+
+/* ===== 容器查询 (现代CSS) ===== */
+@container (width <= 600px) {
+  .markdown {
+    & h1 {
+      font-size: 1.75em;
+    }
+    & h2 {
+      font-size: 1.375em;
+    }
+    & h3 {
+      font-size: 1.175em;
+    }
+  }
+}
+
+/* ===== 主题切换支持 ===== */
+.img-light {
+  display: block;
+}
+
+.img-dark {
+  display: none;
+}
+
+.dark .img-light {
+  display: none;
+}
+
+.dark .img-dark {
+  display: block;
+}
+
+/* ===== KaTeX 数学公式适配 ===== */
+.markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-inline-size: 100%;
+  padding-block: 0.5em;
+
+  & > .katex {
+    max-inline-size: 100%;
+
+    & > .katex-html {
+      max-inline-size: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-inline: 0.25em;
+    }
+  }
+}
+
+/* ===== 外部链接样式 ===== */
+.new-tab-icon {
+  margin-inline-start: 0.1rem;
+  margin-block-end: 0.3rem;
+  font-size: 0.6em;
+}
+
+.external-link-cursor {
+  cursor: var(--external-link-cursor);
+}
+
+/* ===== 徽章样式 ===== */
+.rds-badge {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  margin-inline-end: 0.5rem;
+  color: white;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-transform: uppercase;
+  background-color: #a8a29e;
+
+  &[data-badge='n'] {
+    background-color: #f87171;
+  }
+}
+
+.dark .rds-badge {
+  color: black;
+}
+
+.dark .rds-badge[data-badge='n'] {
+  background-color: #fecaca;
+}
+
+/* ===== 链接图标样式 ===== */
+:is([data-link='github-acct'], [data-link='github-repo'], [data-link='custom-url'], [data-link='npm-pkg']) > img {
+  display: inline-block;
+  inline-size: 1em;
+  block-size: 1em;
+  border-radius: 0;
+  margin: 0;
+  margin-inline-end: 0.3em;
+  margin-block-end: 0.1em;
+}
+
+/* ===== 视频样式 ===== */
+.rds-video {
+  z-index: 150;
+  position: relative;
+  inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  margin-block: var(--space-xl);
+  transform: scale(1, 1) !important;
+}
+
+/* ===== 减少动画偏好设置 ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  image-figure-polaroid {
+    transition: none;
+  }
+}
+
+/* 文章正文里的链接自动换行 */
+.markdown a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* 如果链接出现在代码块或内联代码里 */
+.markdown pre,
+.markdown code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}

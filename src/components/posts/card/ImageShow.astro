@@ -1,0 +1,87 @@
+---
+import LqipImage from '~/components/base/LqipImage.astro'
+import { formatDate } from '~/lib/utils'
+import { POSTS_CONFIG } from '~/config'
+import Badge from '~/components/posts/base/Badge.astro'
+import type { CardProps } from './List.astro'
+
+interface Props extends CardProps {}
+
+const { post, index, coverLayout, class: className, style }: Props = Astro.props
+
+// 固定图片尺寸为 1200*630，宽高比约为 1.9:1
+const IMAGE_WIDTH = 1200
+const IMAGE_HEIGHT = 630
+
+const imagePosition = post.data.coverLayout || coverLayout || (index % 2 === 1 ? 'right' : 'left')
+const isReverse = imagePosition === 'right'
+const recommendText = POSTS_CONFIG.recommendText
+---
+
+<article class:list={[`group flex flex-col sm:flex-row gap-6 sm:gap-10 ${isReverse ? 'sm:flex-row-reverse' : ''}`, className]} {style}>
+  <div class="sm:w-2/6 min-[var(--layout-change-width)]:w-2/8 flex flex-col overflow-hidden">
+    <a href={`/posts/${post.id}`} class="block relative">
+      <div class="aspect-[1200/630] overflow-hidden bg-muted/30 relative">
+        {
+          post.data.cover && (
+            <LqipImage
+              src={post.data.cover}
+              alt=""
+              width={IMAGE_WIDTH}
+              height={IMAGE_HEIGHT}
+              loading="lazy"
+              decoding="async"
+              format="webp"
+              class="w-full h-full object-cover"
+            />
+          )
+        }
+      </div>
+    </a>
+    <a
+      href={`/posts/${post.id}`}
+      class="hidden sm:inline-flex mt-2 items-center gap-2 text-sm font-medium text-foreground/60 hover:text-primary transition-colors group/read"
+    >
+      {POSTS_CONFIG.readMoreText}
+      <span class="icon-[ph--arrow-right] size-4 transition-transform group-hover/read:translate-x-1"></span>
+    </a>
+  </div>
+
+  <div class="w-full sm:w-4/6 min-[var(--layout-change-width)]:w-6/8 flex flex-col justify-start">
+    <div class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground/90 mb-2">
+      <time class="flex items-center gap-2">
+        <span class="icon-[ph--calendar-blank] size-4"></span>
+        {formatDate(post.data.pubDate)}
+      </time>
+
+      {
+        post.data.updatedDate && (
+          <time class="flex items-center gap-2">
+            <span class="icon-[ph--clock-clockwise] size-4" />
+            {formatDate(post.data.updatedDate)}
+          </time>
+        )
+      }
+    </div>
+
+    <a href={`/posts/${post.id}`} class="group/title">
+      <div class="text-base font-semibold transition-colors group-hover/title:text-primary line-clamp-2 leading-5 mb-1">
+        {post.data.title}
+      </div>
+      {post.data.description && <p class="text-sm text-muted-foreground/80 line-clamp-3 leading-5 mb-3">{post.data.description}</p>}
+    </a>
+
+    <div class="flex flex-wrap items-center gap-2 mb-3">
+      {post.data.recommend && <Badge type="recommend" content={recommendText} />}
+      {post.data.tags?.map((tag) => <Badge type="tag" content={tag} />)}
+    </div>
+
+    <!-- <a
+      href={`/posts/${post.id}`}
+      class="sm:hidden mt-auto inline-flex items-center gap-2 text-sm font-medium text-foreground/90 hover:text-primary transition-colors group/read"
+    >
+      {POSTS_CONFIG.readMoreText}
+      <span class="icon-[ph--arrow-right] size-4 transition-transform group-hover/read:translate-x-1"></span>
+    </a> -->
+  </div>
+</article>

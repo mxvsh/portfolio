@@ -1,0 +1,68 @@
+---
+title: 'How to get started with this theme'
+description: 'Quick start for the Litos theme: prerequisites, fork-or-template setup, and next steps.'
+pubDate: 2025-08-15
+author: 'Dnzzk2'
+cover: assets/cover.png
+recommend: true
+tags: ['Litos', 'Documentation']
+license: 'CC-BY-NC-SA-4.0'
+---
+
+This theme was developed during my free time, and the documentation may not be comprehensive enough, but I will try my best to explain it.
+
+### Prerequisite
+
+Before starting, ensure you have the following tools installed in your development environment:
+
+- :link[Node.js]{id=https://nodejs.org/en/download} - Required for running the development environment.
+- :link[pnpm]{id=https://pnpm.io/installation} - Our preferred package manager for dependency management.
+- :link[Git]{id=https://git-scm.com/} - For version control and project management.
+- :link[VS Code]{id=https://code.visualstudio.com/} - Recommended code editor with excellent development experience.
+
+> [!NOTE]
+> If you have other alternative tools, then you don't need to follow the recommendations in this article.
+
+### Startup project
+
+There are two ways to do this:
+
+- :link[Fork the repository]{id=https://github.com/Dnzzk2/Litos/fork}
+- :link[Use this template]{id=https://github.com/Dnzzk2/Litos/generate} - In the future, content-free branches will be launched, which do not require deleting and replacing content.
+
+After you have your own repository, you can clone it to your local machine.
+
+### Update Theme
+
+When the theme releases a new version, you can pull the latest changes without losing your content by following these steps:
+
+**1. Add upstream remote (only needed once)**
+
+```bash
+git remote add upstream https://github.com/Dnzzk2/Litos.git
+```
+
+**2. Fetch and merge the latest theme**
+
+```bash
+git fetch upstream
+git merge upstream/main --no-edit
+```
+
+**3. Resolve conflicts (if any)**
+
+Conflicts typically only occur in files you have modified, such as `src/config.ts`. In that case, just keep your own configuration and accept the rest of the theme updates.
+
+> [!TIP]
+> To minimize conflicts, try to only modify the following files:
+>
+> - `src/config.ts` — Site configuration
+> - `src/content/` — Your posts and projects
+> - `public/` — Your static assets (favicon, images, etc.)
+> - `.env` — Environment variables
+>
+> Avoid modifying theme source files (components, styles, layouts) directly. This ensures smooth updates every time.
+
+### End
+
+The following documents will be divided into pages, such as readme, posts...

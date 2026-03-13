@@ -1,0 +1,49 @@
+---
+import type { CoverLayout, PostCardType } from '~/types'
+import type { CollectionEntry } from 'astro:content'
+import Compact from './Compact.astro'
+import ImageShow from './ImageShow.astro'
+import TimeLine from './TimeLine.astro'
+import Minimal from './Minimal.astro'
+import Cover from './Cover.astro'
+import { cn } from '~/lib/utils'
+
+export type CardProps = {
+  post: CollectionEntry<'posts'>
+  index: number
+  coverLayout?: CoverLayout
+  class?: string
+  style?: string
+}
+
+const POST_CARD_COMPONENTS = {
+  'compact': Compact,
+  'image': ImageShow,
+  'time-line': TimeLine,
+  'minimal': Minimal,
+  'cover': Cover,
+} as const
+
+const POST_CARD_SPACING_CLASSES = {
+  'compact': '',
+  'image': 'space-y-12',
+  'time-line': '',
+  'minimal': '',
+  'cover': 'space-y-6',
+} as const
+
+type Props = {
+  posts: CollectionEntry<'posts'>[]
+  type: PostCardType
+  customSpacing?: string
+  coverLayout?: CoverLayout
+}
+
+const { posts, type, customSpacing, coverLayout } = Astro.props
+const spacingClass = customSpacing || POST_CARD_SPACING_CLASSES[type]
+const PostCardElement = POST_CARD_COMPONENTS[type]
+---
+
+<div class={cn(spacingClass, 'content-visibility: auto')}>
+  {posts.map((post, index) => <PostCardElement {post} {index} {coverLayout} class="fade-up" style={`animation-delay: ${index * 100}ms`} />)}
+</div>

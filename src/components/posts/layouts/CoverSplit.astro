@@ -1,0 +1,102 @@
+---
+import { formatDate } from '~/lib/utils'
+import { ANALYTICS_CONFIG, POSTS_CONFIG } from '~/config'
+import Prose from '~/components/posts/base/Prose.astro'
+import Badge from '~/components/posts/base/Badge.astro'
+import LqipImage from '~/components/base/LqipImage.astro'
+
+interface Props {
+  frontmatter: any
+  minutesRead?: string
+  wordCount?: number
+}
+
+const { frontmatter, minutesRead, wordCount } = Astro.props
+const recommendText = POSTS_CONFIG.recommendText
+---
+
+<article class="relative">
+  <header class="bg-accent/15 backdrop-blur-sm px-6 sm:px-8 py-8 sm:py-10 border-b border-border/50 fade-up animation-delay-100">
+    <div class="global-layout-width mx-auto">
+      <div class="flex flex-wrap items-center gap-3 text-sm text-muted-foreground/85 mb-4 sm:mb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="icon-[ph--calendar-blank] w-4 h-4 opacity-85"></span>
+          <time datetime={frontmatter.pubDate.toISOString()}>
+            {formatDate(frontmatter.pubDate)}
+          </time>
+          {
+            frontmatter.updatedDate && (
+              <div class="flex items-center gap-1.5">
+                / Update
+                <time datetime={frontmatter.updatedDate.toISOString()}>{formatDate(frontmatter.updatedDate)}</time>
+              </div>
+            )
+          }
+        </div>
+        {
+          minutesRead && (
+            <div class="flex items-center gap-1.5">
+              <span class="icon-[ph--book-open-text] w-4 h-4 opacity-85" />
+              <span>{minutesRead} mins</span>
+            </div>
+          )
+        }
+
+        {
+          POSTS_CONFIG.wordCountView && wordCount && (
+            <div class="flex items-center gap-1.5">
+              <span class="icon-[ph--pencil-simple-line] w-4 h-4 opacity-85" />
+              <span>{wordCount} words</span>
+            </div>
+          )
+        }
+
+        {
+          ANALYTICS_CONFIG.vercount?.enabled && (
+            <div class="flex items-center gap-1.5">
+              <span class="icon-[ph--eye] w-4 h-4 opacity-85" />
+              <span id="vercount_value_page_pv">Loading</span> views
+            </div>
+          )
+        }
+      </div>
+      <div class="flex flex-col md:flex-row gap-8 md:gap-8 md:items-center">
+        <div class="md:w-3/5">
+          <div class="space-y-4">
+            <div
+              data-pagefind-body
+              class="text-2xl sm:text-3xl font-semibold leading-tight bg-gradient-to-r from-foreground/90 to-foreground/70 bg-clip-text text-transparent"
+            >
+              {frontmatter.title}
+            </div>
+            {frontmatter.description && <p class="text-base text-muted-foreground/90 leading-5">{frontmatter.description}</p>}
+            <div class="flex gap-2 sm:gap-2.5 flex-wrap pt-2">
+              {frontmatter.recommend && <Badge type="recommend" content={recommendText} />}
+              {frontmatter.tags?.map((tag: string) => <Badge type="tag" content={tag} size="sm" />)}
+            </div>
+          </div>
+        </div>
+        <div class="md:w-2/5">
+          <div class="aspect-[1200/630] w-full overflow-hidden border border-border/50 bg-muted/30">
+            <LqipImage
+              src={frontmatter.cover}
+              alt=""
+              width={1200}
+              height={630}
+              loading="lazy"
+              decoding="async"
+              format="webp"
+              class="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="px-6 sm:px-8 py-10 max-w-4xl mx-auto fade-up animation-delay-150">
+    <Prose>
+      <slot />
+    </Prose>
+  </main>
+</article>

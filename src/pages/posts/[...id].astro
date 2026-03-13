@@ -1,0 +1,79 @@
+---
+import Layout from '~/layouts/Layout.astro'
+import MetaOnly from '~/components/posts/layouts/MetaOnly.astro'
+import CoverSplit from '~/components/posts/layouts/CoverSplit.astro'
+import CoverTop from '~/components/posts/layouts/CoverTop.astro'
+import PostNavigation from '~/components/posts/base/PostNavigation.astro'
+import PostFeatures from '~/components/posts/toc/PostFeatures.astro'
+import TocMobile from '~/components/posts/toc/TocMobile.astro'
+import { POSTS_CONFIG, SITE } from '~/config'
+import { render } from 'astro:content'
+import { getAllPosts } from '~/lib/data'
+import SectionDivider from '~/components/base/SectionDivider.astro'
+import Comment from '~/components/posts/base/Comment.astro'
+import License from '~/components/posts/base/License.astro'
+
+export async function getStaticPaths() {
+  const sortedPosts = await getAllPosts()
+  return sortedPosts.map((post, index) => ({
+    params: { id: post.id },
+    props: {
+      post,
+      posts: sortedPosts,
+      prev: index + 1 < sortedPosts.length ? sortedPosts[index + 1] : null,
+      next: index > 0 ? sortedPosts[index - 1] : null,
+    },
+  }))
+}
+
+const { post, posts, prev, next } = Astro.props
+const { data: frontmatter } = post
+const { Content, headings, remarkPluginFrontmatter } = await render(post)
+
+const filterHeadings = headings.filter((heading: any) => heading.slug !== 'footnote-label')
+
+const hasValidHeadings = filterHeadings.length > 1
+type LayoutKey = 'metaOnly' | 'coverSplit' | 'coverTop'
+
+const layoutMap: Record<LayoutKey, any> = {
+  metaOnly: MetaOnly,
+  coverSplit: CoverSplit,
+  coverTop: CoverTop,
+}
+
+const layoutKey: LayoutKey = (frontmatter.postType as LayoutKey) || (POSTS_CONFIG.postType as LayoutKey)
+const PostLayout = layoutMap[layoutKey]
+---
+
+<Layout
+  title={frontmatter.title}
+  description={frontmatter.description || frontmatter.title}
+  image={frontmatter.ogImage?.src ? `${SITE.website}${frontmatter.ogImage.src}` : SITE.ogImage}
+>
+  <div class="relative flex flex-col justify-between h-fit z-[1]">
+    <TocMobile {post} {posts} headings={filterHeadings} />
+    <PostLayout {frontmatter} minutesRead={remarkPluginFrontmatter.minutesRead} wordCount={remarkPluginFrontmatter.wordCount}>
+      <Content />
+      {
+        frontmatter.license && (
+          <>
+            <hr class="pb-6" />
+            <License license={frontmatter.license} title={frontmatter.title} author={frontmatter.author} />
+          </>
+        )
+      }
+    </PostLayout>
+    {
+      posts.length > 1 && (
+        <div class="px-6 sm:px-8 pb-6 sm:pb-8">
+          <PostNavigation {prev} {next} />
+        </div>
+      )
+    }
+    {hasValidHeadings && <PostFeatures {post} {posts} headings={filterHeadings} />}
+    <SectionDivider />
+    <div class="px-6 py-6 sm:px-8 pb-6 sm:pb-8">
+      <Comment id={post.id} title={frontmatter.title} />
+    </div>
+  </div>
+</Layout>

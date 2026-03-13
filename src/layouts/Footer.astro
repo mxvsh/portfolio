@@ -1,0 +1,41 @@
+---
+import { FOOTER_LINKS, SITE } from '~/config'
+import SectionDivider from '~/components/base/SectionDivider.astro'
+import ThemeToggle from '~/components/theme/ThemeToggle'
+import FooterLink from '~/components/base/FooterLink.astro'
+
+const START_YEAR = 2025
+const currentYear = new Date().getFullYear()
+const yearDisplay = currentYear > START_YEAR ? `${START_YEAR} - ${currentYear}` : `${START_YEAR}`
+---
+
+<SectionDivider className="border-t-border dark:border-t-border/50" />
+<footer>
+  <div class="py-4 flex-none border-x border-border/50 global-layout-width mx-auto">
+    <div class="pb-8">
+      <div
+        class="flex flex-wrap gap-x-3 sm:gap-x-6 gap-y-1 text-sm font-medium text-muted-foreground pb-4 px-6 sm:px-8 border-b border-border/50"
+      >
+        {FOOTER_LINKS.map((link) => <FooterLink href={link.url}>{link.name}</FooterLink>)}
+      </div>
+      <div class="text-sm text-muted-foreground px-6 sm:px-8 py-4">
+        <div class="items-center flex flex-wrap gap-4 font-medium">
+          <div>© {yearDisplay} crafted by {SITE.author}.</div>
+          <div class="grow"></div>
+          <div class="flex gap-2 items-center" transition:persist="footer-theme-toggle">
+            <a
+              href="https://github.com/Dnzzk2/Litos"
+              target="_blank"
+              class="inline-flex items-center justify-center hover:scale-105"
+              aria-label="GitHub Source"
+              title="GitHub Source"
+            >
+              <span class="icon-[mdi--github] size-5"></span>
+            </a>
+            <ThemeToggle client:load />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

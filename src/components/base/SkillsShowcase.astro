@@ -1,0 +1,93 @@
+---
+import { cn } from '~/lib/utils'
+import type { SkillData, Skill } from '~/types'
+
+interface Props {
+  skillsData: SkillData[]
+}
+
+const { skillsData }: Props = Astro.props
+
+const duplicateSkills = (skills: Skill[]) => [...skills, ...skills, ...skills, ...skills]
+---
+
+<div class="skills-container relative py-2 px-2 max-md:px-0 perspective-[1500px]">
+  {
+    skillsData.map((row: SkillData) => {
+      const duplicatedSkills = duplicateSkills(row.skills)
+      return (
+        <div class="relative w-full overflow-hidden my-4 group content-visibility-auto">
+          <div
+            class={cn(
+              'flex w-max will-change-transform',
+              row.direction === 'right' ? 'animate-[scroll-reverse_30s_linear_infinite]' : 'animate-[scroll_30s_linear_infinite]',
+              'group-hover:[animation-play-state:paused]'
+            )}
+            style="transform: translateZ(0);"
+          >
+            {duplicatedSkills.map((skill) => {
+              const Tag = skill.url ? 'a' : 'div'
+              const props = skill.url ? { href: skill.url, target: '_blank', rel: 'noopener noreferrer' } : {}
+              return (
+                <div class="skill-card mx-2">
+                  <Tag
+                    class="skill-inner group flex items-center gap-2 px-3 py-1.5 text-foreground whitespace-nowrap transition-all duration-200"
+                    {...props}
+                  >
+                    <span class={cn('flex items-center justify-center w-5 h-5', skill.icon)} />
+                    <span class="font-sans text-sm font-medium">{skill.name}</span>
+                  </Tag>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+    })
+  }
+
+  <div class="pointer-events-none absolute left-0 top-0 w-[10%] h-full bg-gradient-to-r from-background to-transparent z-10"></div>
+  <div class="pointer-events-none absolute right-0 top-0 w-[10%] h-full bg-gradient-to-l from-background to-transparent z-10"></div>
+</div>
+
+<style is:global>
+  @keyframes scroll {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(-25%, 0, 0);
+    }
+  }
+
+  @keyframes scroll-reverse {
+    0% {
+      transform: translate3d(-25%, 0, 0);
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .skill-card {
+    position: relative;
+    border-radius: 0.375rem;
+    background-color: hsl(var(--accent));
+    overflow: hidden;
+    /* 性能优化 */
+    contain: layout style paint;
+    transform: translateZ(0);
+  }
+
+  .skill-inner {
+    position: relative;
+    margin: 1px;
+    border-radius: calc(0.375rem - 1px);
+    background: hsl(var(--accent));
+    z-index: 1;
+  }
+
+  .skill-inner:hover {
+    background: hsl(var(--tag-bg-hover));
+  }
+</style>

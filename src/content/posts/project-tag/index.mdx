@@ -1,0 +1,89 @@
+---
+title: 'Project And Tag Page Config'
+description: 'Configure Projects and Tags pages: page texts (PROJECTS_CONFIG, TAGS_CONFIG), project content frontmatter, file locations, and usage examples.'
+pubDate: 2025-08-11
+author: 'Dnzzk2'
+cover: assets/cover.png
+recommend: true
+tags: ['Litos', 'Documentation']
+---
+
+Due to the small size of the Project and tag page configurations, they are merged into one document.
+
+The following files are compatible with this document:
+
+- `src/pages/projects/index.astro` - project page.
+- `src/pages/tags/index.astro` - tag statistics page.
+- `src/pages/tags/[tag]/[...page].astro` - specific tag display post list page.
+- `src/config.ts` - project and tag page config.
+- `src/components/base` - most of the components come from here.
+
+### Project Page Config
+
+Configure page texts:
+
+```ts title="config.ts"
+export const PROJECTS_CONFIG: ProjectConfig = {
+  title: 'Projects',
+  description: 'The examples of my projects.',
+  introduce: 'The examples of my projects.',
+}
+```
+
+| Property    | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| title       | Title displayed on browser tags and title displayed on page. |
+| description | The metadata description in the `head` element of the page.  |
+| introduce   | The introduce below the title on the page.                   |
+
+### Project content
+
+The content displayed on the project page comes from `/src/content/projects`.
+
+Its writing style is similar to posts: one MDX file represents one project.
+
+#### Project frontmatter
+
+Example (`src/content/projects/Litos/index.mdx`):
+
+```mdx title="projects/Litos/index.mdx"
+---
+name: 'Litos'
+description: 'A Simple & Modern Blog Theme for Astro.'
+githubUrl: 'https://github.com/Dnzzk2/Litos'
+website: 'https://litos.vercel.app/'
+type: 'image'
+icon: '../../../../public/projects/litos.png'
+imageClass: 'w-10 h-10'
+star: 32
+fork: 7
+---
+```
+
+| Property    | Description                                                              |
+| ----------- | ------------------------------------------------------------------------ |
+| name        | Project name.                                                            |
+| description | Short description shown with the project card.                           |
+| githubUrl   | GitHub repository URL of the project.                                    |
+| website     | Project website or demo URL.                                             |
+| type        | Display type for the project card. For now, `'image'` shows a thumbnail. |
+| icon        | Icon path for the project (supports paths under `public/`).              |
+| imageClass  | Extra classes for sizing the image (e.g., Tailwind classes).             |
+| star        | Stars count (optional).                                                  |
+| fork        | Forks count (optional).                                                  |
+
+### Tag Page Config
+
+```ts title="config.ts"
+export const TAGS_CONFIG: TagsConfig = {
+  title: 'Tags',
+  description: 'All tags of Posts',
+  introduce: 'All the tags for posts are here, you can click to filter them.',
+}
+```
+
+| Property    | Description                                                                     |
+| ----------- | ------------------------------------------------------------------------------- |
+| title       | Title displayed on browser tags and title displayed on the tag statistics page. |
+| description | The metadata description in the `head` element of the tag statistics page.      |
+| introduce   | The introduce below the title on the tag statistics page.                       |
