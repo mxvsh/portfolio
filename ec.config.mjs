@@ -3,7 +3,7 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 
 export default defineEcConfig({
-  defaultLocale: 'zh-CN',
+  defaultLocale: 'en-US',
   defaultProps: {
     wrap: false,
     collapseStyle: 'collapsible-auto',

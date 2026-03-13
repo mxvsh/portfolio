@@ -1,0 +1,46 @@
+---
+title: 'Why I built Drivebase'
+description: 'My journey from building a Telegram file manager to creating a unified storage solution.'
+pubDate: 2026-03-04
+author: 'Monawwar Abdullah'
+cover: https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F7x872nvtv0q493ajfii4.png
+recommend: true
+tags: ['open-source', 'journey', 'storage', 'telegram']
+license: 'CC-BY-NC-SA-4.0'
+---
+
+## Little history
+
+It started back in 2025 when I wanted to upload files to Telegram. I had many files in Saved Messages, but it was becoming difficult to manage them. I didn’t have a structured way to organize my files. 
+
+I wanted a place where I could create folders and upload files, while the content would still be saved in Telegram’s Saved Messages. So I built Drivegram, a file manager specifically for Telegram.
+
+```
+App UI
+   ↓
+Backend
+   ↓
+Telegram API
+   ↓
+Saved Messages storage
+```
+
+## What Drivebase Can Do Today
+
+Fast forward today, its now been renamed to Drivebase, and supports not only Telegram but major other storage provider, and slowly adding more in the future as the app grows.
+
+Drivebase evolved from a Telegram file hack into a unified storage layer. Instead of juggling multiple storage apps, Drivebase lets you connect them all in one place and manage them through a single interface.
+
+```typescript
+interface StorageProvider {
+  upload()
+  download()
+  list()
+  delete()
+}
+```
+
+The experience is intentionally designed to feel like a normal file manager, even though the data may live across completely different providers.
+
+
+Checkout the [website](https://drivebase.io) to get started. Or clone the [source code](https://github.com/drivebase/drivebase) from Github.
