@@ -18,7 +18,7 @@ const REDIRECTS: Map<string, string[]> = new Map([
   ["https://github.com/mxvsh/wave", ["wave"]],
   ["https://svglogo.dev", ["svg"]],
   ["https://promptsplanet.dev", ["prompts", "webbin"]],
-  ["mailto:send@mxv.sh?subjet=Hello+Monawwar!", ["mail", "email"]],
+  ["mailto:send@mxv.sh?subject=Hello+Monawwar!", ["mail", "email"]],
 ]);
 
 function redirectsToObject(map: Map<string, string[]>): Record<string, string> {
