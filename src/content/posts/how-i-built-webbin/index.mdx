@@ -1,0 +1,148 @@
+---
+title: 'How I built Webbin overnight'
+description: 'The full story of building a prompt gallery, preview pipeline, and early access system from scratch — bugs, pivots, and all.'
+pubDate: 2026-03-16
+author: 'Monawwar Abdullah'
+recommend: true
+tags: ['webbin', 'nextjs', 'journey', 'indie']
+license: 'CC-BY-NC-SA-4.0'
+---
+
+AI can generate stunning UIs from a single sentence. The problem is they disappear. You close the tab, the conversation ends, and that beautiful dashboard you prompted into existence is gone. Nobody else sees it. Nobody can remix it. It just vanishes.
+
+That bothered me enough to do something about it. So I built [Webbin](https://webbin.dev) — a gallery where people share their AI-generated UI prompts, complete with live preview screenshots. Here's how it actually came together.
+
+## The stack
+
+I didn't want to spend a week on infrastructure decisions, so I went with tools I could move fast with:
+
+- **Next.js** with the App Router — RSC for data fetching, minimal client JS
+- **tRPC** — end-to-end type safety, no API contract drift
+- **Drizzle ORM + Postgres** — schema-first, migrations that I actually understand
+- **Better Auth** — OAuth (GitHub + Google) with hooks I can intercept
+- **HeroUI** — accessible components that look good without fighting Tailwind
+- **Trigger.dev** — background jobs with built-in checkpointing, no Lambda timeouts to worry about
+- **Novu** — notification workflows with email + in-app, templated with React Email
+- **Cloudflare R2** — cheap object storage for preview screenshots
+
+Every one of these was chosen because it had a 30-minute setup ceiling and got out of my way after that.
+
+## Night one: getting the core loop working
+
+The first thing I needed was the basic loop: submit a prompt, view it in a gallery, share it.
+
+I started with auth — GitHub and Google OAuth via Better Auth. Then the gallery with sorting (trending, recent, top), tag filtering, and bookmarks. Trending was a simple score based on recency + bookmark count. Nothing clever.
+
+The sign-in modal came next. I wanted sign-in to be frictionless — no separate page, just a modal that opens wherever you are on the site. Same pattern for bookmarking: if you're not signed in and you click the bookmark button, the modal opens.
+
+By the time I had the basic gallery working, the submissions flow was next. Users paste their HTML output from whatever AI tool they used, add a title and tags, and submit. Simple enough. But a gallery of prompts with no visual preview is just a list of links — not interesting.
+
+## The preview problem
+
+This is where it got complicated.
+
+The idea was to automatically screenshot the submitted HTML and store it as a preview image. I'd use Puppeteer to spin up a headless browser, render the HTML, take a screenshot, and upload it to R2. The whole thing would run as a background job via Trigger.dev so it wouldn't block the submission response.
+
+The first version worked locally. In production: nothing. No screenshots, no errors, complete silence.
+
+The bug took me longer than I'd like to admit. I was triggering the Trigger.dev task like this:
+
+```typescript
+tasks.trigger("generate-preview", { promptId, slug }).catch(console.error);
+```
+
+Fire-and-forget. Totally reasonable-looking code. Completely broken on Vercel.
+
+When a serverless function returns a response, Vercel terminates the execution context. The `.catch()` was there, but the promise never had a chance to resolve — the function had already exited. The fix was one word:
+
+```typescript
+await tasks.trigger("generate-preview", { promptId, slug });
+```
+
+That's it. Wrap it in try/catch to handle errors gracefully, but don't let it be fire-and-forget in a serverless context.
+
+Then came the next issue: blank screenshots. Some prompts use CSS animations that play on page load — loaders, fade-ins, entrance transitions. Puppeteer was snapshotting the page at frame zero before anything had rendered.
+
+```typescript
+await page.setContent(html, { waitUntil: "networkidle0", timeout: 15000 });
+// Give animations time to settle
+await new Promise((r) => setTimeout(r, 1500));
+const screenshot = await page.screenshot({ type: "jpeg", quality: 90 });
+```
+
+Not elegant. But it works. The 1.5 second wait catches most animations. The 15 second timeout on `networkidle0` prevents hanging forever on prompts that load external fonts or scripts.
+
+I also switched from `@sparticuz/chromium` (a stripped-down Chromium for Lambda) to Trigger.dev's built-in Puppeteer extension, which runs in their managed environment and just works.
+
+## Polishing
+
+Once the core was stable, I started filling in the product.
+
+**SEO** — custom sitemap generation, OG images per prompt, proper metadata for every page. Profile pages update the OG title to `First Last - Webbin`. If a profile doesn't exist, `generateMetadata` returns 404 before the page even renders.
+
+**Notifications** — Novu handles email workflows. When an admin verifies a user, they get a clean professional email. When someone is promoted to moderator, same. Email templates with `@react-email/components`, no emoji in subject lines (they read as spam).
+
+For new prompt submissions, I wanted a faster signal than email — so I added a Telegram bot notification. A single POST request to the Bot API, triggered server-side when a non-auto-approved prompt is submitted. Admin gets a ping immediately.
+
+**Gallery card details** — author avatars next to their name, hover effect on the author link, `prefetch={false}` on tag and author links. That last one matters: without it, every scroll triggers RSC prefetch requests for every visible tag. On a long gallery page that's a lot of unnecessary traffic.
+
+**Verified badges** — the admin panel already had a verification system. I added a checkmark badge on the profile avatar using a `CheckCircle2` icon with a `bg-background` ring so it sits cleanly on top of the avatar.
+
+## Community and trust
+
+As the platform opened up a little, I needed moderation tools.
+
+Users can report prompts and other users. Reports land in the admin panel with reason codes and optional notes. The report button is a small flag icon, unobtrusive but always available.
+
+Rate limiting on submissions — nobody gets to spam the gallery. Onboarding flow with a confetti burst when you complete your profile. Small things that make it feel more like a product than a side project.
+
+## Going private: early access
+
+At some point I realized I needed to control the growth rate. The quality of what gets submitted matters more than the quantity. So I added an early access system before opening registrations further.
+
+The flow:
+1. User submits their email + a note about themselves on the `/studio` page
+2. Request lands in the admin panel
+3. Admin approves — a one-time token is generated, stored in the DB
+4. User gets an email with a `/join?token=...` link
+5. They click it, sign in with GitHub or Google, account is created
+
+The token-gating happens in Better Auth's `databaseHooks.user.create.before` hook. When someone tries to create an account, we check if their email has an approved early access record. If not, the signup is blocked with a `403 FORBIDDEN` before any user record is written.
+
+```typescript
+before: async (user) => {
+  const earlyAccessOn = await isEarlyAccessEnabled();
+  if (earlyAccessOn) {
+    const request = await getEarlyAccessByEmail(user.email);
+    if (!request || request.status !== "approved") {
+      throw new APIError("FORBIDDEN", { message: "Early access required" });
+    }
+    await completeEarlyAccess(user.email);
+  }
+  return { data: user };
+},
+```
+
+Existing users are unaffected — the hook only fires on new account creation.
+
+For feature flags, I added an `app_config` table — a simple key/value store. `early_access_enabled`, `signin_enabled`. New flags get added by inserting a row, no schema changes needed. The admin panel has toggles for each one.
+
+## Studio: showing intent
+
+Webbin Studio is the next piece — an interactive playground where you can remix prompts, iterate in real time, and export to React or Next.js. It's not built yet, but I built the landing page anyway.
+
+The `/studio` page has a hero, a bento grid of features, and a "Request early access" button that opens a modal with the early access form. The form pre-fills the email field if you're already signed in.
+
+Building the landing page before the product is a deliberate choice. It lets people understand what's coming, sets expectations, and starts building a waitlist while I work on it. It also makes the product feel more real — to me as much as to users.
+
+## What I actually learned
+
+**Serverless is not a free background job runner.** Fire-and-forget doesn't fire. Anything that needs to happen after you return a response needs to actually be awaited or offloaded to a proper job queue.
+
+**Ship something that almost works, then fix it.** The Puppeteer pipeline was broken in production for a bit. I found out because I was watching the dashboard and noticed no runs. If I'd waited until everything was perfect before launching, I'd still be waiting.
+
+**The small details compound.** Disabling prefetch on links, pre-filling emails, adding the Telegram ping — none of these individually matter much. Together they make the difference between something that feels like a side project and something that feels like a product.
+
+**Good infra choices pay off fast.** Trigger.dev's checkpoint system meant I never had to worry about job timeouts on long screenshot tasks. tRPC caught type errors before they became runtime bugs. These aren't exciting choices, but they removed whole categories of problems.
+
+Webbin is live at [webbin.dev](https://webbin.dev). If you've been generating UIs with AI and want somewhere to share them, request early access on the Studio page.
