@@ -1,6 +1,6 @@
 ---
 title: 'How I built Webbin'
-description: 'The full story of building a prompt gallery, preview pipeline, and early access system from scratch — bugs, pivots, and all.'
+description: 'The full story of building a prompt gallery, preview pipeline, and moderation system from scratch — bugs, pivots, and all.'
 pubDate: 2026-03-16
 author: 'Monawwar Abdullah'
 cover: ./_assets/banner.png
@@ -96,37 +96,6 @@ As the platform opened up a little, I needed moderation tools.
 Users can report prompts and other users. Reports land in the admin panel with reason codes and optional notes. The report button is a small flag icon, unobtrusive but always available.
 
 Rate limiting on submissions — nobody gets to spam the gallery. Onboarding flow with a confetti burst when you complete your profile. Small things that make it feel more like a product than a side project.
-
-## Going private: early access
-
-At some point I realized I needed to control the growth rate. The quality of what gets submitted matters more than the quantity. So I added an early access system before opening registrations further.
-
-The flow:
-1. User submits their email + a note about themselves on the `/studio` page
-2. Request lands in the admin panel
-3. Admin approves — a one-time token is generated, stored in the DB
-4. User gets an email with a `/join?token=...` link
-5. They click it, sign in with GitHub or Google, account is created
-
-The token-gating happens in Better Auth's `databaseHooks.user.create.before` hook. When someone tries to create an account, we check if their email has an approved early access record. If not, the signup is blocked with a `403 FORBIDDEN` before any user record is written.
-
-```typescript
-before: async (user) => {
-  const earlyAccessOn = await isEarlyAccessEnabled();
-  if (earlyAccessOn) {
-    const request = await getEarlyAccessByEmail(user.email);
-    if (!request || request.status !== "approved") {
-      throw new APIError("FORBIDDEN", { message: "Early access required" });
-    }
-    await completeEarlyAccess(user.email);
-  }
-  return { data: user };
-},
-```
-
-Existing users are unaffected — the hook only fires on new account creation.
-
-For feature flags, I added an `app_config` table — a simple key/value store. `early_access_enabled`, `signin_enabled`. New flags get added by inserting a row, no schema changes needed. The admin panel has toggles for each one.
 
 ## Studio: showing intent
 

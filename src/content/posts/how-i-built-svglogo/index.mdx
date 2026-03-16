@@ -1,0 +1,110 @@
+---
+title: 'How I built svglogo.dev'
+description: 'Building a browser-based SVG logo maker in a weekend — from a TanStack Start experiment to a tool people actually use.'
+pubDate: 2026-03-11
+author: 'Monawwar Abdullah'
+cover: ./_assets/banner.png
+recommend: true
+tags: ['svglogo', 'nextjs', 'journey', 'indie', 'tools']
+license: 'CC-BY-NC-SA-4.0'
+---
+
+Every side project needs a logo. Not a designed-by-a-professional logo — just something that says "this has a visual identity." A favicon, a social card, something to put in the README. The usual solution is to spend 20 minutes in Figma making something barely passable, or pay for a tool that assumes you want to build a Fortune 500 brand.
+
+I wanted neither. I wanted to pick an icon, drop it on a colored background, and export it. Done. That's [svglogo.dev](https://svglogo.dev).
+
+## What it does
+
+You search for an icon from the Iconify library — thousands of icons covering every major icon set — pick a background color or gradient, adjust the border radius, set an outline if you want one, and export. SVG, PNG, or ICO. Everything runs in the browser, no server needed for the core logo generation.
+
+The result is a clean icon-based logo mark you can drop into a landing page, a GitHub repo, or a browser tab in under a minute.
+
+## Night one: start wrong, fix fast
+
+The first commit landed at 11:29 PM on March 11. I started with TanStack Start — I'd been meaning to try it, and a small tool felt like the right scope for an experiment.
+
+By midnight I'd scrapped it. TanStack Start was perfectly fine; it just wasn't the right choice for something I wanted deployed and working by morning. I switched to Next.js, which I already know inside out, and immediately stopped thinking about the framework.
+
+By 2 AM I had:
+- Icon search and picker (Iconify's React component with a searchable grid)
+- Background color and gradient controls
+- Border radius slider
+- Icon outline/border toggle
+- Randomize button to generate a random logo with one click
+- Copy/paste support — copy your config as JSON, paste it somewhere else
+- Animated dice button because a randomize button should feel fun
+- Tooltips on every control
+
+The core loop was working. Pick icon → style it → export it.
+
+## The dock UI
+
+The controls panel is structured as a dock at the bottom of the screen — a row of controls that stays out of the way of the canvas. Each section (background, border, export) lives in the dock with inline color pickers, sliders, and a menu for export options.
+
+The canvas itself is a large preview area that updates live as you adjust controls. No "apply" button, no refresh — every tweak is instant.
+
+I added undo/redo early. It's one of those things that feels like polish but is actually table stakes. If you accidentally blow away a gradient you liked, you need to get it back.
+
+## Keyboard shortcuts
+
+Power users want keyboard shortcuts. I added an `InfoFab` — a floating button that shows the available shortcuts:
+
+- `R` — randomize
+- `V` — paste config from clipboard
+- `Ctrl+Z / Ctrl+Shift+Z` — undo/redo
+
+The shortcut for paste was originally `P` but I changed it to `V` since `V` is the mental model people already have for paste.
+
+## The sharing problem
+
+A logo tool without sharing is just a local toy. I wanted people to be able to share a logo configuration — a URL that anyone could open and see the same logo.
+
+The implementation is straightforward: serialize the logo config to a JSON object, store it in Redis, and return a short ID. The share URL is just `/?s=[id]` — a query param on the homepage. When someone opens it, the config is fetched from Redis and loaded into the editor.
+
+The OG image for share URLs was trickier. I needed to generate a dynamic image showing the actual logo — the icon, the background, the border — as a social card when someone shares the link. That's a Satori + Next.js edge route: take the config from the URL params, render the logo as JSX, and return a PNG.
+
+Getting the icon SVG into the OG route was the fiddly part. Iconify's icons are fetched from their API, and the OG route runs on the edge where you can't assume anything is cached. I added a dedicated `fetchIconSvg` function with a timeout and a simple in-memory cache so repeated OG requests for the same icon don't hammer the Iconify API.
+
+```typescript
+const svg = await fetchIconSvg(icon, { timeout: 3000 });
+```
+
+If the fetch times out, the OG image falls back to a plain background — better than hanging the response.
+
+## Collections
+
+After sharing, the next obvious feature was saving. People wanted to collect logo variants — try five different color combinations and keep the ones they liked.
+
+Collections are stored in `localStorage` — no login, no backend, no friction. You click the heart button and the config is saved. Your collection persists across sessions in the same browser.
+
+It's the right call for a tool like this. A sign-in flow would add complexity and kill the "open and go" experience that makes the tool useful.
+
+## Onboarding
+
+A tool with a clean UI can still be confusing if you don't know where to start. I added an onboarding wizard — a short guided tour that highlights the main controls in sequence. It runs on first visit and can be triggered again from the info button.
+
+The tour doesn't lock you out of the UI while it runs. It just highlights the relevant area and tells you what it does. Then it gets out of the way.
+
+## Desktop only
+
+The editor requires a decent amount of screen space. On mobile, the dock and canvas don't have room to breathe. Rather than shipping a broken experience, I added a desktop-only notice that shows on small screens. A deliberate choice: better to say "this doesn't work here" than to ship something that half-works.
+
+## SEO as a feature
+
+SVG logo tools get found through search. People Google "free svg logo maker," "svg to ico converter," "svg to favicon." I added dedicated landing pages for each use case — `/logo-maker`, `/svg-to-favicon`, `/svg-to-ico`, `/svg-to-png` — with proper metadata, JSON-LD schemas, and canonical URLs.
+
+The sitemap is generated with `next-sitemap`. Each page has a custom description written for the specific search intent, not copy-pasted from the homepage.
+
+This isn't gaming the algorithm. These are genuinely different entry points to the same tool, and each page explains the relevant use case clearly.
+
+## What I'd do differently
+
+**Start with Next.js.** The TanStack Start experiment cost me an hour and gave me nothing. When you're building something you want shipped fast, use what you know.
+
+**Ship the sharing feature earlier.** It unlocked a lot — the OG image, the social sharing, the ability to send a logo to someone for feedback. Everything downstream of sharing would have been cleaner if I'd designed for it from the start.
+
+**localStorage was the right call for collections.** I considered adding auth and a real database. I'm glad I didn't. The tool works without an account. That's a feature.
+
+---
+
+[svglogo.dev](https://svglogo.dev) is free and open source. If you need a logo for your next project, give it a try. If you find a bug or have a feature idea, the repo is on GitHub.
