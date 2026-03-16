@@ -216,7 +216,7 @@ export const GITHUB_CONFIG: GithubConfig = {
 //--- Posts Page Config ---
 export const POSTS_CONFIG: PostConfig = {
   title: 'Posts',
-  description: 'Posts by me.',
+  description: 'Articles and write-ups by Monawwar Abdullah on software, open-source, and developer tools.',
   introduce: 'List of all my posts, enjoy reading.',
   author: 'Monawwar Abdullah',
   homePageConfig: {
@@ -266,14 +266,14 @@ export const COMMENT_CONFIG: CommentConfig = {
 
 export const TAGS_CONFIG: TagsConfig = {
   title: 'Tags',
-  description: 'All tags of Posts',
+  description: 'Browse posts by tag — topics include open-source, developer tools, storage, and more.',
   introduce: 'All the tags for posts are here, you can click to filter them.',
 }
 
 export const PROJECTS_CONFIG: ProjectConfig = {
   title: 'Projects',
-  description: 'The examples of my projects.',
-  introduce: 'The examples of my projects.',
+  description: 'Open-source projects and developer tools built by Monawwar Abdullah.',
+  introduce: 'Open-source projects and developer tools built by Monawwar Abdullah.',
 }
 
 export const PHOTOS_CONFIG: PhotosConfig = {

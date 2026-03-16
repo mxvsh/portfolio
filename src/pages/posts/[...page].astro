@@ -1,7 +1,7 @@
 ---
 import type { GetStaticPaths, Page } from 'astro'
 import type { CollectionEntry } from 'astro:content'
-import { POSTS_CONFIG } from '~/config'
+import { POSTS_CONFIG, SITE } from '~/config'
 import { getAllPosts } from '~/lib/data'
 import Layout from '~/layouts/Layout.astro'
 import Pagination from '~/components/base/Pagination.astro'
@@ -23,9 +23,23 @@ interface Props {
 const { page } = Astro.props
 
 const { title, description, introduce } = POSTS_CONFIG
+
+const postListSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Posts by Monawwar Abdullah',
+  url: new URL('/posts', SITE.website).href,
+  itemListElement: page.data.map((post, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: post.data.title,
+    description: post.data.description,
+    url: new URL(`/posts/${post.id}`, SITE.website).href,
+  })),
+}
 ---
 
-<Layout {title} {description}>
+<Layout {title} {description} jsonLd={postListSchema}>
   <div class="relative z-[1] py-8 pb-10 px-6 sm:px-8">
     <PageTitle {title} {introduce} />
     <div class="mt-12 fade-up">

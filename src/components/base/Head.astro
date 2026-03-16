@@ -6,12 +6,67 @@ type Props = {
   title: string
   description: string
   image?: string
+  jsonLd?: object | object[]
 }
 
-const { title, description, image }: Props = Astro.props
+const { title, description, image, jsonLd }: Props = Astro.props
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site)
 const ogImage = new URL(image || SITE.ogImage, Astro.url)
+
+// --- JSON-LD Structured Data ---
+const baseUrl = SITE.website.endsWith('/') ? SITE.website.slice(0, -1) : SITE.website
+const pathname = Astro.url.pathname
+const segments = pathname.split('/').filter(Boolean)
+const rawTitle = title.endsWith(` | ${SITE.title}`)
+  ? title.slice(0, -(` | ${SITE.title}`.length)).trim()
+  : title
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.title,
+  url: SITE.website,
+  description: SITE.description,
+  author: {
+    '@type': 'Person',
+    name: SITE.author,
+    url: SITE.website,
+  },
+}
+
+const segmentLabels: Record<string, string> = {
+  posts: 'Posts',
+  projects: 'Projects',
+  tags: 'Tags',
+  photos: 'Photos',
+}
+
+const breadcrumbSchema =
+  segments.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.website },
+          ...segments.map((seg, i) => {
+            const path = baseUrl + '/' + segments.slice(0, i + 1).join('/')
+            const isLast = i === segments.length - 1
+            const name = isLast
+              ? rawTitle
+              : segmentLabels[seg] ||
+                seg.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+            return { '@type': 'ListItem', position: i + 2, name, item: path }
+          }),
+        ],
+      }
+    : null
+
+const allSchemas = [
+  websiteSchema,
+  ...(breadcrumbSchema ? [breadcrumbSchema] : []),
+  ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : []),
+]
 ---
 
 <script is:inline src="/js/theme.js"></script>
@@ -49,6 +104,9 @@ const ogImage = new URL(image || SITE.ogImage, Astro.url)
 
 <!-- 标准链接  Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json" set:html={JSON.stringify(allSchemas)} />
 
 <!-- Sitemap -->
 <link rel="sitemap" href="/sitemap-index.xml" />

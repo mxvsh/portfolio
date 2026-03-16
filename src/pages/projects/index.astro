@@ -1,6 +1,6 @@
 ---
 import { cn } from '~/lib/utils'
-import { PROJECTS_CONFIG } from '~/config'
+import { PROJECTS_CONFIG, SITE } from '~/config'
 import Layout from '~/layouts/Layout.astro'
 import SectionDivider from '~/components/base/SectionDivider.astro'
 import NumberTicker from '~/components/base/NumberTicker'
@@ -10,9 +10,23 @@ import PageTitle from '~/components/base/PageTitle.astro'
 
 const { title, description, introduce } = PROJECTS_CONFIG
 const projects = await getAllProjects()
+
+const projectListSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Projects by Monawwar Abdullah',
+  url: new URL('/projects', SITE.website).href,
+  itemListElement: projects.map((project, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: project.data.name,
+    description: project.data.description,
+    url: project.data.website || project.data.githubUrl,
+  })),
+}
 ---
 
-<Layout {title} {description}>
+<Layout {title} {description} jsonLd={projectListSchema}>
   <div class="relative z-[1] py-8 pb-10">
     <div class="px-6 sm:px-8">
       <PageTitle {title} {introduce} />

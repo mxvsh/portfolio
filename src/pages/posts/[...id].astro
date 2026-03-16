@@ -30,6 +30,25 @@ const { post, posts, prev, next } = Astro.props
 const { data: frontmatter } = post
 const { Content, headings, remarkPluginFrontmatter } = await render(post)
 
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: frontmatter.title,
+  description: frontmatter.description || frontmatter.title,
+  author: {
+    '@type': 'Person',
+    name: frontmatter.author || SITE.author,
+    url: SITE.website,
+  },
+  datePublished: frontmatter.pubDate?.toISOString?.() ?? String(frontmatter.pubDate ?? ''),
+  url: new URL(`/posts/${post.id}`, SITE.website).href,
+  image: frontmatter.ogImage?.src ? `${SITE.website}${frontmatter.ogImage.src}` : new URL(SITE.ogImage, SITE.website).href,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': new URL(`/posts/${post.id}`, SITE.website).href,
+  },
+}
+
 const filterHeadings = headings.filter((heading: any) => heading.slug !== 'footnote-label')
 
 const hasValidHeadings = filterHeadings.length > 1
@@ -49,6 +68,7 @@ const PostLayout = layoutMap[layoutKey]
   title={frontmatter.title}
   description={frontmatter.description || frontmatter.title}
   image={frontmatter.ogImage?.src ? `${SITE.website}${frontmatter.ogImage.src}` : SITE.ogImage}
+  jsonLd={articleSchema}
 >
   <div class="relative flex flex-col justify-between h-fit z-[1]">
     <TocMobile {post} {posts} headings={filterHeadings} />

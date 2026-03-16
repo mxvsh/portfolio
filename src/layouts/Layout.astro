@@ -12,15 +12,16 @@ type Props = {
   title: string
   description: string
   image?: string
+  jsonLd?: object | object[]
 }
 
-const { title, description, image }: Props = Astro.props
+const { title, description, image, jsonLd }: Props = Astro.props
 ---
 
 <!doctype html>
 <html lang={SITE.lang} transition:name="root" transition:animate={SITE.transition ? 'fade' : 'none'}>
   <head>
-    <Head title={`${title} | ${SITE.title}`} {description} {image} />
+    <Head title={`${title} | ${SITE.title}`} {description} {image} {jsonLd} />
   </head>
   <body class="flex flex-col">
     <Header />

@@ -51,6 +51,17 @@ export default defineConfig({
 		remarkPlugins,
 		rehypePlugins,
 	},
-	integrations: [expressiveCode(), mdx(), react(), sitemap(), robotsTxt()],
+	integrations: [
+    expressiveCode(),
+    mdx(),
+    react(),
+    sitemap({
+      changefreq: 'daily',
+      priority: 0.7,
+      lastmod: new Date(),
+      customPages: [],
+    }),
+    robotsTxt(),
+  ],
 	redirects
 });
