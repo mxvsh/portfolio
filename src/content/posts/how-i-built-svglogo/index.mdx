@@ -1,11 +1,11 @@
 ---
-title: 'How I built svglogo.dev'
-description: 'Building a browser-based SVG logo maker in a weekend — from a TanStack Start experiment to a tool people actually use.'
+title: 'How I built SVGLogo.dev'
+description: 'Building a browser-based SVG logo maker — canvas experiments, a Reddit launch, six community-driven updates, and a migration to TanStack Start on Cloudflare.'
 pubDate: 2026-03-11
 author: 'Monawwar Abdullah'
 cover: ./_assets/banner.png
 recommend: true
-tags: ['svglogo', 'nextjs', 'journey', 'indie', 'tools']
+tags: ['svglogo', 'tanstack', 'journey', 'indie', 'tools']
 license: 'CC-BY-NC-SA-4.0'
 ---
 
@@ -39,9 +39,11 @@ The core loop was working. Pick icon → style it → export it.
 
 ## The dock UI
 
-The controls panel is structured as a dock at the bottom of the screen — a row of controls that stays out of the way of the canvas. Each section (background, border, export) lives in the dock with inline color pickers, sliders, and a menu for export options.
+My first instinct was a canvas-based design — a drag-and-drop editor where you'd position elements and manipulate them directly. I built a rough version. It felt wrong immediately. Too heavy. Too much clicking around to do simple things. The kind of UI that makes you feel like you're using design software when you just want to change a background color.
 
-The canvas itself is a large preview area that updates live as you adjust controls. No "apply" button, no refresh — every tweak is instant.
+I scrapped it and asked myself what the actual interaction was: the user looks at the preview and tweaks controls until it looks right. That's it. So I put the preview front and center, and built a dock at the bottom of the screen — a fixed bar with every control always visible and one click away.
+
+No panels to open. No tabs to switch. You see the logo, you reach down to the dock, you adjust. The whole thing is instant.
 
 I added undo/redo early. It's one of those things that feels like polish but is actually table stakes. If you accidentally blow away a gradient you liked, you need to get it back.
 
@@ -59,17 +61,9 @@ The shortcut for paste was originally `P` but I changed it to `V` since `V` is t
 
 A logo tool without sharing is just a local toy. I wanted people to be able to share a logo configuration — a URL that anyone could open and see the same logo.
 
-The implementation is straightforward: serialize the logo config to a JSON object, store it in Redis, and return a short ID. The share URL is just `/?s=[id]` — a query param on the homepage. When someone opens it, the config is fetched from Redis and loaded into the editor.
+The implementation is straightforward: serialize the logo config to a JSON object, store it in Cloudflare KV, and return a short ID. The share URL is just `/?s=[id]` — a query param on the homepage. When someone opens it, the config is fetched from KV and loaded into the editor.
 
-The OG image for share URLs was trickier. I needed to generate a dynamic image showing the actual logo — the icon, the background, the border — as a social card when someone shares the link. That's a Satori + Next.js edge route: take the config from the URL params, render the logo as JSX, and return a PNG.
-
-Getting the icon SVG into the OG route was the fiddly part. Iconify's icons are fetched from their API, and the OG route runs on the edge where you can't assume anything is cached. I added a dedicated `fetchIconSvg` function with a timeout and a simple in-memory cache so repeated OG requests for the same icon don't hammer the Iconify API.
-
-```typescript
-const svg = await fetchIconSvg(icon, { timeout: 3000 });
-```
-
-If the fetch times out, the OG image falls back to a plain background — better than hanging the response.
+KV was the obvious choice once we were on Cloudflare infra — no separate Redis instance to manage, globally distributed, and the pricing is generous enough that a logo tool doesn't have to think about it.
 
 ## Collections
 
@@ -85,25 +79,39 @@ A tool with a clean UI can still be confusing if you don't know where to start. 
 
 The tour doesn't lock you out of the UI while it runs. It just highlights the relevant area and tells you what it does. Then it gets out of the way.
 
-## Desktop only
+## The migration: Next.js → TanStack Start
 
-The editor requires a decent amount of screen space. On mobile, the dock and canvas don't have room to breathe. Rather than shipping a broken experience, I added a desktop-only notice that shows on small screens. A deliberate choice: better to say "this doesn't work here" than to ship something that half-works.
+After launch, I migrated to TanStack Start — the framework I'd originally tried and dropped on night one in favor of shipping fast with Next.js. A few weeks later, with the product stable and the feedback loop running, it was the right time to revisit it.
 
-## SEO as a feature
+Once the pressure of "get it live" was off, the tradeoffs became clearer. TanStack Start's routing model fits the app better, and the performance characteristics on Cloudflare are noticeably better.
 
-SVG logo tools get found through search. People Google "free svg logo maker," "svg to ico converter," "svg to favicon." I added dedicated landing pages for each use case — `/logo-maker`, `/svg-to-favicon`, `/svg-to-ico`, `/svg-to-png` — with proper metadata, JSON-LD schemas, and canonical URLs.
+Speaking of Cloudflare — I moved off Vercel at the same time. Cloudflare Workers gives you unlimited bandwidth with limits that reset daily, and the pricing starts at $5. For a tool that can generate a lot of traffic from a single Reddit post, that's a much more comfortable place to be than a platform that charges per GB after a free tier.
 
-The sitemap is generated with `next-sitemap`. Each page has a custom description written for the specific search intent, not copy-pasted from the homepage.
+## Reddit and the feedback loop
 
-This isn't gaming the algorithm. These are genuinely different entry points to the same tool, and each page explains the relevant use case clearly.
+I posted svglogo.dev on Reddit. Real users showed up, and real feedback followed immediately. Six updates shipped directly from what people asked for.
+
+**Mobile support.** The desktop-only notice was the first thing people pushed back on. Fair enough — if you're browsing on your phone and you find a tool you want to use, a wall saying "come back on desktop" is frustrating. I rebuilt the layout to work on smaller screens and removed the notice.
+
+**Search all icons on no results.** When a search returned nothing in the current icon set, there was a dead end. Someone suggested a fallback: a button to search across all icon sets at once. Simple addition, much better experience when you can't find what you're looking for.
+
+**Hex input in the color picker.** The color picker was visual-only. Several people asked for a hex input so they could paste in a brand color directly. Added it.
+
+**Multiple gradient stops.** The gradient control started with two stops. People building more complex backgrounds wanted more control — three, four, five stops. Extended the gradient system to support it.
+
+**Testimonials.** Someone who used the tool to build a logo for their startup shared it in the thread. Then another. Then a few more. I added a testimonials section to the homepage. Social proof built by the community.
+
+**Advanced export.** Power users wanted more control over the PNG export — custom sizes, padding, scale. Added an advanced export panel with those options.
+
+Every one of these came from reading comments and shipping the same week. That feedback loop is worth more than any amount of solo planning.
 
 ## What I'd do differently
 
-**Start with Next.js.** The TanStack Start experiment cost me an hour and gave me nothing. When you're building something you want shipped fast, use what you know.
-
-**Ship the sharing feature earlier.** It unlocked a lot — the OG image, the social sharing, the ability to send a logo to someone for feedback. Everything downstream of sharing would have been cleaner if I'd designed for it from the start.
+**Ship the sharing feature earlier.** It unlocked the social side of the tool — the ability to send a logo to someone for feedback, the shareable URLs that spread the tool around. Everything downstream of it would have been cleaner if I'd designed for it from the start.
 
 **localStorage was the right call for collections.** I considered adding auth and a real database. I'm glad I didn't. The tool works without an account. That's a feature.
+
+**Post to Reddit earlier.** The six updates I shipped after the Reddit post were better than anything I came up with building alone. Real users with real use cases find the gaps you don't. The sooner you get in front of them, the faster the product improves.
 
 ---
 
