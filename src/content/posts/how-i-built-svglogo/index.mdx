@@ -19,11 +19,9 @@ You search for an icon from the Iconify library — thousands of icons covering 
 
 The result is a clean icon-based logo mark you can drop into a landing page, a GitHub repo, or a browser tab in under a minute.
 
-## Night one: start wrong, fix fast
+## Night one
 
-The first commit landed at 11:29 PM on March 11. I started with TanStack Start — I'd been meaning to try it, and a small tool felt like the right scope for an experiment.
-
-By midnight I'd scrapped it. TanStack Start was perfectly fine; it just wasn't the right choice for something I wanted deployed and working by morning. I switched to Next.js, which I already know inside out, and immediately stopped thinking about the framework.
+The first commit landed at 11:29 PM on March 11. I went with Next.js — familiar, fast to set up, gets out of the way.
 
 By 2 AM I had:
 - Icon search and picker (Iconify's React component with a searchable grid)
@@ -61,9 +59,9 @@ The shortcut for paste was originally `P` but I changed it to `V` since `V` is t
 
 A logo tool without sharing is just a local toy. I wanted people to be able to share a logo configuration — a URL that anyone could open and see the same logo.
 
-The implementation is straightforward: serialize the logo config to a JSON object, store it in Cloudflare KV, and return a short ID. The share URL is just `/?s=[id]` — a query param on the homepage. When someone opens it, the config is fetched from KV and loaded into the editor.
+The implementation is straightforward: serialize the logo config to a JSON object, store it server-side, and return a short ID. The share URL is just `/?s=[id]` — a query param on the homepage. When someone opens it, the config is fetched and loaded into the editor.
 
-KV was the obvious choice once we were on Cloudflare infra — no separate Redis instance to manage, globally distributed, and the pricing is generous enough that a logo tool doesn't have to think about it.
+After migrating to Cloudflare, I swapped the storage layer to Cloudflare KV — no separate Redis instance to manage, globally distributed, and the pricing is generous enough that a logo tool never has to think about it.
 
 ## Collections
 
@@ -81,9 +79,9 @@ The tour doesn't lock you out of the UI while it runs. It just highlights the re
 
 ## The migration: Next.js → TanStack Start
 
-After launch, I migrated to TanStack Start — the framework I'd originally tried and dropped on night one in favor of shipping fast with Next.js. A few weeks later, with the product stable and the feedback loop running, it was the right time to revisit it.
+After launch and the Reddit feedback wave, I migrated from Next.js to TanStack Start. The trigger was Cloudflare — TanStack Start deploys to Cloudflare Workers with almost no friction, and the performance difference is noticeable. Faster cold starts, better edge routing, and the app just feels snappier.
 
-Once the pressure of "get it live" was off, the tradeoffs became clearer. TanStack Start's routing model fits the app better, and the performance characteristics on Cloudflare are noticeably better.
+Once I started looking at Cloudflare seriously, the full picture clicked. TanStack Start's routing model also fits the app better than Next.js did.
 
 Speaking of Cloudflare — I moved off Vercel at the same time. Cloudflare Workers gives you unlimited bandwidth with limits that reset daily, and the pricing starts at $5. For a tool that can generate a lot of traffic from a single Reddit post, that's a much more comfortable place to be than a platform that charges per GB after a free tier.
 
